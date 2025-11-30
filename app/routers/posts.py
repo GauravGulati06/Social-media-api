@@ -4,19 +4,21 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from ..database import get_db, engine
 from ..oauth2 import get_current_user
+from sqlalchemy import func
 
 router = APIRouter(
     prefix="/posts",
     tags=["Posts"]
 )
 
-@router.get("", response_model=list[schemas.PostResponse])
+@router.get("", response_model=list[schemas.PostOut])
 def get_posts(db: Session = Depends(get_db), user: int = Depends(get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("SELECT * FROM posts")
     # posts = cursor.fetchall()
     #------------------------------------------------------------
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
-    return posts
+    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    # print(results)
+    return results
 
 @router.post("", response_model=schemas.PostResponse)
 def create_item(post: schemas.PostCreate = Body(...), db: Session = Depends(get_db),user: int = Depends(get_current_user)):
@@ -34,18 +36,17 @@ def create_item(post: schemas.PostCreate = Body(...), db: Session = Depends(get_
     db.refresh(new_post)
     return new_post
 
-@router.get("/{id}", response_model=schemas.PostResponse)
+@router.get("/{id}", response_model=schemas.PostOut)
 def get_post(id: int, db: Session = Depends(get_db), user: int = Depends(get_current_user)):
     # cursor.execute("SELECT * FROM posts WHERE id = %s", (str(id)))
     # post = cursor.fetchone()
     # if not post:
     #     raise HTTPException(status_code=404, detail=f"Post with id {id} not found")
     #------------------------------------------------------------
-    post = db.query(models.Post).filter(models.Post.id == id).first()
+    post = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=404, detail=f"Post with id {id} not found")
     return post
-
 
 
 @router.delete("/{id}", status_code=204)

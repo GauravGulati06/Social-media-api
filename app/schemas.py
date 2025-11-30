@@ -21,6 +21,10 @@ class PostResponse(BaseModel):
     
     class Config:
         from_attributes = True
+        
+class PostOut(BaseModel):
+    Post: PostResponse
+    votes: int
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -39,3 +43,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: Optional[int] = None
+
+class Vote(BaseModel):
+    post_id: int
+    dir: int = Field(..., ge=0, le=1)  # dir can be 0 or 1
