@@ -22,9 +22,10 @@ app.include_router(vote.router)
 
 @app.get("/")
 def root():
-    return {"message": "Welcome to the FastAPI application!\n"
-    "This is a social media API where you can create posts, "
-    "manage users, authenticate, and vote on posts.\n"
-    "Enjoy your stay!\n"
-    "Hit the /docs endpoint for interactive API documentation."}
+    return {
+        "message": "Welcome to the FastAPI application!",
+        "details": "This is a social media API where you can create posts, manage users, authenticate, and vote on posts.",
+        "note": "Enjoy your stay!",
+        "docs": "Hit /docs for API documentation."
+    }
 models.Base.metadata.create_all(bind=engine)
