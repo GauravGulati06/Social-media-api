@@ -19,4 +19,8 @@ app.include_router(posts.router)
 app.include_router(users.router)
 app.include_router(auth.router)
 app.include_router(vote.router)
+
+@app.get("/")
+def root():
+    return {"message": "Welcome to the FastAPI application!"}
 models.Base.metadata.create_all(bind=engine)
